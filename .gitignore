@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated output (keep structure, ignore content)
+outputs/*.txt
+outputs/*.md
+outputs/classeurs/**/*.txt
+outputs/classeurs/**/*.md
+
+# Keep .gitkeep files
+!outputs/.gitkeep
+!data/.gitkeep
+!outputs/classeurs/.gitkeep
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Git commands
+setup_branches.sh
