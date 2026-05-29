@@ -1,0 +1,13 @@
+# ============================================================
+# EpiAlert - Alert Records
+# Last updated: 2026-05-29 16:16
+# Total records: 4
+# ============================================================
+# Fields:
+#   id | disease | region | province | commune | case_count |
+#   threshold | message | severity | date_created | is_active
+# ============================================================
+1|Cerebrospinal Meningitis|Sahel|Seno|Dori|4|3|EPIDEMIC ALERT: Cerebrospinal Meningitis cases in Sahel / Seno / Dori have exceeded the threshold (4 cases vs. threshold of 3).|Critical|2025-03-08|1
+2|Cerebrospinal Meningitis|Sahel|Djelgodji|Djibo|2|3|EPIDEMIC ALERT: Cerebrospinal Meningitis cases in Sahel / Djelgodji / Djibo approaching threshold (2 cases vs. threshold of 3).|Warning|2025-03-15|1
+3|Cerebrospinal Meningitis|Sahel|Seno|Dori|4|3|EPIDEMIC ALERT: Cerebrospinal Meningitis cases in Sahel / Seno / Dori have exceeded the threshold (4 cases vs. threshold of 3).|Warning|2026-05-29|1
+4|Cerebrospinal Meningitis|Sahel|Seno|Dori|4|3|EPIDEMIC ALERT: Cerebrospinal Meningitis cases in Sahel / Seno / Dori have exceeded the threshold (4 cases vs. threshold of 3).|Warning|2026-05-29|1

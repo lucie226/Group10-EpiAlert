@@ -1,0 +1,64 @@
+# ============================================================
+# EpiAlert - Patient Records Database
+# Last updated: 2026-05-29 16:16
+# Total records: 54
+# ============================================================
+# Fields:
+#   id | first_name | last_name | age | gender | disease |
+#   status | region | province | commune | facility | date_reported
+#   | entered_by (agent ID)
+# ============================================================
+1|Amadou|Ouedraogo|32|M|Malaria|Confirmed|Centre|Kadiogo|Ouagadougou|CHU Yalgado Ouedraogo|2025-08-15 09:30|HA-20250815093000
+2|Fatimata|Sawadogo|24|F|Malaria|Confirmed|Centre|Kadiogo|Ouagadougou|CMA Bogodogo|2025-08-16 10:15|HA-20250816101500
+3|Moussa|Kabore|7|M|Malaria|Suspected|Centre|Kadiogo|Saaba|CSPS Saaba|2025-08-17 11:00|HA-20250817110000
+4|Aissatou|Traore|45|F|Malaria|Recovered|Centre|Kadiogo|Ouagadougou|CHU Yalgado Ouedraogo|2025-08-10 08:45|HA-20250810084500
+5|Boureima|Zongo|58|M|Malaria|Deceased|Centre|Kadiogo|Koubri|CSPS Koulouba|2025-08-12 14:20|HA-20250812142000
+6|Zenab|Kafando|10|F|Malaria|Suspected|Centre|Kadiogo|Ouagadougou|CHU Yalgado Ouedraogo|2025-08-19 07:30|HA-20250819073000
+7|Prosper|Guigma|37|M|Malaria|Confirmed|Centre|Kadiogo|Pabre|CSPS Patte d'Oie|2025-08-20 16:00|HA-20250820160000
+8|Alizeta|Bado|20|F|Malaria|Confirmed|Centre|Kadiogo|Ouagadougou|CMA Bogodogo|2025-08-21 09:10|HA-20250821091000
+9|Tene|Nebie|75|F|Malaria|Deceased|Centre|Kadiogo|Koubri|CSPS Koulouba|2025-08-11 13:45|HA-20250811134500
+10|Maminata|Compaore|3|F|Malaria|Confirmed|Centre|Kadiogo|Ouagadougou|CMA Nongr-Massom|2025-09-02 10:30|HA-20250902103000
+11|Moumouni|Diallo|42|M|Malaria|Recovered|Centre|Kadiogo|Tanghin-Dassouri|CSPS Tanghin-Dassouri|2025-09-05 08:00|HA-20250905080000
+12|Mariam|Diallo|3|F|Malaria|Confirmed|Hauts-Bassins|Houet|Bobo-Dioulasso|CHU Sourou Sanou|2025-08-14 11:20|HA-20250814112000
+13|Ibrahim|Konate|28|M|Malaria|Recovered|Hauts-Bassins|Houet|Bobo-Dioulasso|CMA Dafra|2025-08-09 15:00|HA-20250809150000
+14|Kadi|Sanou|15|F|Malaria|Confirmed|Hauts-Bassins|Kenedougou|Orodara|CMA Orodara|2025-08-22 09:45|HA-20250822094500
+15|Seydou|Traore|6|M|Malaria|Suspected|Hauts-Bassins|Tuy|Hounde|CMA Hounde|2025-08-25 14:30|HA-20250825143000
+16|Kadiatou|Coulibaly|15|F|Malaria|Confirmed|Cascades|Comoe|Banfora|CMA Banfora|2025-08-18 10:00|HA-20250818100000
+17|Lassina|Hien|22|M|Malaria|Suspected|Cascades|Leraba|Sindou|CMA Sindou|2025-08-28 08:30|HA-20250828083000
+18|Adama|Sawadogo|35|M|Malaria|Confirmed|Boucle du Mouhoun|Bale|Boromo|CMA Boromo|2025-08-18 11:15|HA-20250818111500
+19|Peggy|Some|8|F|Malaria|Recovered|Boucle du Mouhoun|Mouhoun|Dedougou|CMA Dedougou|2025-08-20 16:45|HA-20250820164500
+20|Charlemagne|Kafando|50|M|Malaria|Confirmed|Centre-Ouest|Boulkiemde|Koudougou|CMA Koudougou|2025-09-01 09:00|HA-20250901090000
+21|Juliette|Zoungrana|12|F|Malaria|Suspected|Centre-Ouest|Sissili|Leo|CMA Leo|2025-09-03 13:20|HA-20250903132000
+22|Ousmane|Sawadogo|19|M|Cerebrospinal Meningitis|Confirmed|Sahel|Seno|Dori|CMA Dori|2025-03-05 07:45|HA-20250305074500
+23|Awa|Dicko|4|F|Cerebrospinal Meningitis|Confirmed|Sahel|Oudalan|Gorom-Gorom|CMA Gorom-Gorom|2025-03-07 10:30|HA-20250307103000
+24|Seydou|Zida|25|M|Cerebrospinal Meningitis|Suspected|Sahel|Yagha|Sebba|CSP Sebba|2025-03-08 14:00|HA-20250308140000
+25|Issaka|Ouedraogo|30|M|Cerebrospinal Meningitis|Confirmed|Sahel|Seno|Dori|CHR de Dori|2025-03-10 08:15|HA-20250310081500
+26|Ramata|Dicko|12|F|Cerebrospinal Meningitis|Deceased|Sahel|Seno|Dori|CMA Dori|2025-03-12 11:00|HA-20250312110000
+27|Halimatou|Traore|8|F|Cerebrospinal Meningitis|Recovered|Sahel|Djelgodji|Djibo|CMA Djibo|2025-03-01 15:30|HA-20250301153000
+28|Aboubacar|Maiga|20|M|Cerebrospinal Meningitis|Confirmed|Sahel|Djelgodji|Djibo|CHR de Djibo|2025-03-15 09:45|HA-20250315094500
+29|Issa|Kabore|22|M|Cerebrospinal Meningitis|Confirmed|Nord|Yatenga|Ouahigouya|CMA Ouahigouya|2025-03-12 10:20|HA-20250312102000
+30|Bintou|Zongo|16|F|Cerebrospinal Meningitis|Recovered|Nord|Passore|Yako|CMA Yako|2025-03-20 14:00|HA-20250320140000
+31|Rasmata|Ouedraogo|2|F|Measles|Confirmed|Centre-Nord|Sanmatenga|Kaya|CMA Kaya|2025-04-10 08:30|HA-20250410083000
+32|Abdoul|Sawadogo|3|M|Measles|Confirmed|Centre-Nord|Bam|Kongoussi|CMA Kongoussi|2025-04-12 11:00|HA-20250412110000
+33|Mamadou|Diallo|4|M|Measles|Recovered|Centre-Nord|Namentenga|Boulsa|CSP Boulsa|2025-04-08 09:15|HA-20250408091500
+34|Aicha|Compaore|1|F|Measles|Confirmed|Centre-Nord|Sanmatenga|Kaya|CHR de Kaya|2025-04-15 14:30|HA-20250415143000
+35|Fati|Zongo|5|F|Measles|Suspected|Est|Gourma|Fada N'Gourma|CMA Fada N'Gourma|2025-04-15 10:00|HA-20250415100000
+36|Pascal|Yameogo|35|M|Dengue|Confirmed|Centre|Kadiogo|Ouagadougou|CHU Yalgado Ouedraogo|2025-09-01 08:00|HA-20250901080000
+37|Clarisse|Compaore|29|F|Dengue|Confirmed|Centre|Kadiogo|Ouagadougou|CMA Nongr-Massom|2025-09-03 09:30|HA-20250903093000
+38|Adele|Sawadogo|18|F|Dengue|Recovered|Centre|Kadiogo|Ouagadougou|CMA Bogodogo|2025-08-28 11:15|HA-20250828111500
+39|Rachid|Ouedraogo|40|M|Dengue|Suspected|Centre|Kadiogo|Ouagadougou|CHU Yalgado Ouedraogo|2025-09-10 07:45|HA-20250910074500
+40|Dieudonne|Kabore|42|M|Dengue|Suspected|Hauts-Bassins|Houet|Bobo-Dioulasso|CHU Sourou Sanou|2025-09-05 16:00|HA-20250905160000
+41|Maimouna|Sanou|33|F|Dengue|Confirmed|Hauts-Bassins|Houet|Bobo-Dioulasso|CMA Do|2025-09-08 10:30|HA-20250908103000
+42|Gaston|Traore|55|M|Cholera|Confirmed|Boucle du Mouhoun|Mouhoun|Dedougou|CMA Dedougou|2025-07-20 09:00|HA-20250720090000
+43|Marguerite|Konate|40|F|Cholera|Confirmed|Boucle du Mouhoun|Bale|Boromo|CMA Boromo|2025-07-22 11:30|HA-20250722113000
+44|Thiombiano|Augustin|60|M|Cholera|Deceased|Sud-Ouest|Ioba|Dano|CMA Dano|2025-07-25 14:00|HA-20250725140000
+45|Paul|Bado|38|M|Cholera|Confirmed|Centre-Est|Boulgou|Tenkodogo|CMA Tenkodogo|2025-07-30 08:15|HA-20250730081500
+46|Bintou|Coulibaly|6|F|Waterborne Diseases (Diarrhea)|Confirmed|Centre-Ouest|Sissili|Leo|CMA Leo|2025-08-05 10:00|HA-20250805100000
+47|Salif|Zongo|12|M|Waterborne Diseases (Diarrhea)|Recovered|Centre-Sud|Bazega|Kombissiri|CMA Kombissiri|2025-08-02 09:30|HA-20250802093000
+48|Aziz|Ouedraogo|8|M|Waterborne Diseases (Diarrhea)|Suspected|Plateau-Central|Ganzourgou|Zorgho|CMA Zorgho|2025-08-15 15:00|HA-20250815150000
+49|Oumarou|Diallo|65|M|Acute Respiratory Infections (Pneumonia)|Confirmed|Nord|Passore|Yako|CMA Yako|2025-01-15 10:00|HA-20250115100000
+50|Fatou|Ouedraogo|70|F|Acute Respiratory Infections (Pneumonia)|Deceased|Plateau-Central|Ganzourgou|Zorgho|CMA Zorgho|2025-01-18 14:30|HA-20250118143000
+51|Hama|Cisse|50|M|Acute Respiratory Infections (Pneumonia)|Recovered|Centre-Est|Boulgou|Tenkodogo|CMA Tenkodogo|2025-01-20 08:45|HA-20250120084500
+52|Mariam|Dembele|4|F|Acute Respiratory Infections (Pneumonia)|Suspected|Boucle du Mouhoun|Sourou|Tougan|CMA Tougan|2025-01-25 11:00|HA-20250125110000
+53|Boureima|Sanou|55|M|Acute Respiratory Infections (Pneumonia)|Confirmed|Hauts-Bassins|Houet|Bobo-Dioulasso|CHU Sourou Sanou|2025-02-01 09:15|HA-20250201091500
+54|Test|Patient|30|M|Malaria|Suspected|Centre|Kadiogo|Ouagadougou|CHU Yalgado Ouedraogo|2025-10-01 10:30|HA-TEST001

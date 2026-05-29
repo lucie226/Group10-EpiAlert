@@ -1,0 +1,30 @@
+# ============================================================
+# EpiAlert - Disease Case Records
+# Last updated: 2025-09-10 14:30
+# Total records: 20
+# ============================================================
+# Fields:
+#   id | disease | region | province | commune |
+#   suspected | confirmed | recovered | deceased |
+#   date_reported | week_number
+# ============================================================
+1|Malaria|Centre|Kadiogo|Ouagadougou|4|8|3|2|2025-08-20|34
+2|Malaria|Hauts-Bassins|Houet|Bobo-Dioulasso|2|3|2|0|2025-08-20|34
+3|Malaria|Cascades|Comoe|Banfora|1|2|1|0|2025-08-19|34
+4|Malaria|Boucle du Mouhoun|Bale|Boromo|2|3|1|0|2025-08-18|33
+5|Malaria|Centre-Ouest|Boulkiemde|Koudougou|1|2|0|0|2025-09-01|35
+6|Cerebrospinal Meningitis|Sahel|Seno|Dori|2|4|1|1|2025-03-08|10
+7|Cerebrospinal Meningitis|Nord|Yatenga|Ouahigouya|1|2|1|0|2025-03-12|11
+8|Cerebrospinal Meningitis|Sahel|Djelgodji|Djibo|1|2|1|0|2025-03-15|11
+9|Measles|Centre-Nord|Sanmatenga|Kaya|1|3|1|0|2025-04-12|15
+10|Measles|Est|Gourma|Fada N'Gourma|1|1|0|0|2025-04-15|16
+11|Dengue|Centre|Kadiogo|Ouagadougou|2|3|1|0|2025-09-03|36
+12|Dengue|Hauts-Bassins|Houet|Bobo-Dioulasso|1|1|0|0|2025-09-05|36
+13|Cholera|Boucle du Mouhoun|Mouhoun|Dedougou|1|2|0|1|2025-07-22|30
+14|Cholera|Sud-Ouest|Ioba|Dano|0|1|0|1|2025-07-25|30
+15|Cholera|Centre-Est|Boulgou|Tenkodogo|1|1|0|0|2025-07-30|31
+16|Waterborne Diseases (Diarrhea)|Centre-Ouest|Sissili|Leo|1|2|1|0|2025-08-05|32
+17|Acute Respiratory Infections (Pneumonia)|Nord|Passore|Yako|1|2|1|1|2025-01-18|3
+18|Acute Respiratory Infections (Pneumonia)|Plateau-Central|Ganzourgou|Zorgho|0|1|0|1|2025-01-20|4
+19|Acute Respiratory Infections (Pneumonia)|Boucle du Mouhoun|Sourou|Tougan|1|1|0|0|2025-01-25|4
+20|Acute Respiratory Infections (Pneumonia)|Hauts-Bassins|Houet|Bobo-Dioulasso|1|1|0|0|2025-02-01|5
