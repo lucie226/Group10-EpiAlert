@@ -1,5 +1,4 @@
-
-"""EpiAlert main entry point.
+"""EpiAlert — main entry point.
 
 This is where everything starts.  We initialise the data layer,
 show the login screen, and drive the main menu loop.  Every
@@ -7,20 +6,26 @@ user-facing action is wrapped in try/except so the app never
 crashes unexpectedly.
 
 The two agent roles have strictly separated menus:
-    Health Agent:    register patients, search, update status,
-                     review own entries.
-    Department Agent: view cases, detect epidemics, view alerts,
-                      generate/export reports, view analytics.
 
-Run it with:  python main.py
+    Health Agent
+        Register patients, search, update status, review own
+        entries, and batch-register multiple patients at once.
+
+    Department Agent
+        View cases, detect epidemics, view alerts, generate /
+        export reports, view analytics.
+
+Run it with::
+
+    python main.py
 """
 
-# Import the system module to handle OS-level interactions (e.g., exiting the program)
-import sys
+from __future__ import annotations
 
-# Import global configuration variables (application name, ANSI colors, and menu definitions)
+import sys
+from typing import Union
+
 from config import APP_NAME, Colors, HEALTH_MENU, DEPT_MENU
-# Import logical engines and core data layer manager components
 from core import (
     Analytics,
     DataManager,
@@ -28,9 +33,7 @@ from core import (
     ReportEngine,
     ReportExporter,
 )
-# Import data structures (class models) for agents and patients
 from models import Agent, HealthAgent, DepartmentAgent, Patient
-# Import user interface utilities (Console UI) for I/O operations and rendering
 from ui import (
     choose,
     confirm,
@@ -62,10 +65,25 @@ from ui import (
     warn,
 )
 
+# Public API — ``from main import *`` only exports these names.
+__all__: list[str] = [
+    "main",
+    "do_register",
+    "do_register_batch",
+    "do_search",
+    "do_update",
+    "do_own_entries",
+    "do_view_cases",
+    "do_detect",
+    "do_view_alerts",
+    "do_report",
+    "do_export",
+    "do_analytics",
+]
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Health Agent actions — data entry only
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# Section: Health Agent actions — data entry only
+
 
 def do_register(dm: DataManager, agent: Agent) -> None:
     """Walk the user through patient registration.
@@ -75,98 +93,175 @@ def do_register(dm: DataManager, agent: Agent) -> None:
     auto-fills with the current timestamp when the user presses
     Enter.  The entered_by field records the health agent's ID.
 
+    This is the single-patient version.  For registering several
+    patients in one session see :func:`do_register_batch`.
+
     Args:
         dm:    The data manager instance.
         agent: The currently logged-in health agent.
     """
-    # Display the section header for patient registration
     header("Register New Patient")
 
-    # Prompt for first name and handle cancellation if left blank
-    first = read_str("First name")
+    # Collect demographic fields — any blank entry cancels the operation
+    first: str = read_str("First name")
     if not first:
-        warn("Cancelled.") # Notify user of cancellation
-        pause()            # Pause to give the user time to read the message
-        return             # Abort the workflow and return to the main menu
-    
-    # Prompt for last name and handle cancellation
-    last = read_str("Last name")
+        warn("Cancelled.")
+        pause()
+        return
+    last: str = read_str("Last name")
     if not last:
         warn("Cancelled.")
         pause()
         return
-    
-    # Safely read integer for age with a strict validation range between 0 and 150
-    age = read_int("Age", 0, 150)
-    
-    # Interactive selection for gender and handle cancellation
-    gender = pick_gender()
+    age: int = read_int("Age", 0, 150)
+    gender: str = pick_gender()
     if not gender:
         warn("Cancelled.")
         pause()
         return
-    
-    # Select from a predefined list of monitored diseases and handle cancellation
-    disease = pick_disease()
+    disease: str = pick_disease()
     if not disease:
         warn("Cancelled.")
         pause()
         return
-    
-    # Select the initial clinical status of the patient and handle cancellation
-    status = pick_status()
+    status: str = pick_status()
     if not status:
         warn("Cancelled.")
         pause()
         return
-    
-    # Hierarchical geographical selection: Step 1 - Region
-    region = pick_region()
+    region: str = pick_region()
     if not region:
         warn("Cancelled.")
         pause()
         return
-    
-    # Hierarchical geographical selection: Step 2 - Province (filtered by chosen region)
-    province = pick_province(region)
+    province: str = pick_province(region)
     if not province:
         warn("Cancelled.")
         pause()
         return
-    
-    # Hierarchical geographical selection: Step 3 - Commune (filtered by chosen province)
-    commune = pick_commune(province)
+    commune: str = pick_commune(province)
     if not commune:
         warn("Cancelled.")
         pause()
         return
-    
-    # Select the reporting healthcare facility (filtered by region)
-    facility = pick_facility(region)
+    facility: str = pick_facility(region)
     if not facility:
         warn("Cancelled.")
         pause()
         return
-    
-    # Capture or automatically generate the timestamp for the case report
-    # Date auto-fills with current timestamp
-    date = read_date("Date reported")
+    # Date auto-fills with current timestamp when the user presses Enter
+    date: str = read_date("Date reported")
 
-    # Instantiate the Patient model with a temporary ID (0) and the current agent's ID
-    p = Patient(
+    p: Patient = Patient(
         0, first, last, age, gender, disease, status,
         region, province, commune, facility, date,
         agent.get_id(),
     )
-    # Persist the patient record via DataManager, which returns a unique database ID
-    pid = dm.add_patient(p)
-    
-    # Check if the database write succeeded (a positive ID confirms insertion)
+    pid: int = dm.add_patient(p)
     if pid > 0:
-        ok(f"Patient registered - ID: {pid}") # Success message
-        show_patient(p)                        # Display the saved patient details card
+        ok(f"Patient registered - ID: {pid}")
+        show_patient(p)
     else:
-        err("Failed to save patient record.")  # Display error message on database failure
+        err("Failed to save patient record.")
+    pause()
+
+
+def do_register_batch(dm: DataManager, agent: Agent) -> None:
+    """Register multiple patients in one interactive session.
+
+    After each successful registration the user is asked
+    "Add another? (y/n)".  The loop continues until the user
+    answers "n" or cancels a field entry.  All patients are
+    registered with the same agent ID.
+
+    This is useful during field campaigns where a health agent
+    needs to enter several patient records consecutively without
+    navigating back to the main menu each time.
+
+    Args:
+        dm:    The data manager instance.
+        agent: The currently logged-in health agent.
+    """
+    header("Batch Register Patients")
+    count: int = 0
+
+    while True:
+        # Announce which patient we are on (1-based for display)
+        count += 1
+        info(f"--- Patient #{count} ---")
+
+        # Collect demographic fields — same flow as do_register
+        first: str = read_str("First name")
+        if not first:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        last: str = read_str("Last name")
+        if not last:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        age: int = read_int("Age", 0, 150)
+        gender: str = pick_gender()
+        if not gender:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        disease: str = pick_disease()
+        if not disease:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        status: str = pick_status()
+        if not status:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        region: str = pick_region()
+        if not region:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        province: str = pick_province(region)
+        if not province:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        commune: str = pick_commune(province)
+        if not commune:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        facility: str = pick_facility(region)
+        if not facility:
+            warn("Cancelled this patient.")
+            count -= 1
+            break
+        # Date auto-fills with current timestamp
+        date: str = read_date("Date reported")
+
+        p: Patient = Patient(
+            0, first, last, age, gender, disease, status,
+            region, province, commune, facility, date,
+            agent.get_id(),
+        )
+        pid: int = dm.add_patient(p)
+        if pid > 0:
+            ok(f"Patient registered - ID: {pid}")
+            show_patient(p)
+        else:
+            err("Failed to save patient record.")
+            count -= 1
+
+        # Ask whether to continue — this is the core batch mechanism
+        if not confirm("Add another patient?"):
+            break
+
+    # Summary of the batch session
+    if count > 0:
+        ok(f"Batch complete: {count} patient(s) registered.")
+    else:
+        info("No patients were registered.")
     pause()
 
 
@@ -177,39 +272,32 @@ def do_search(dm: DataManager, agent: Agent) -> None:
         dm:    The data manager instance.
         agent: The currently logged-in health agent.
     """
-    # Display the section header for patient lookup
     header("Search Patient")
-    # Render search mode options with Cyan highlighted numbers
     print(f"  {Colors.CYAN}1.{Colors.RESET}  By ID")
     print(
         f"  {Colors.CYAN}2.{Colors.RESET}"
         f"  By name / disease / region"
     )
-    # Capture the user's menu choice, restricted strictly to options 1 and 2
-    c = choose(1, 2)
-    
-    # Option 1: Exact search by unique numerical patient ID
+    c: int = choose(1, 2)
     if c == 1:
-        pid = read_int("Patient ID", 1, 99999) # Secured integer input
-        p = dm.find_patient_by_id(pid)         # Query the database layer
+        pid: int = read_int("Patient ID", 1, 99999)
+        p: Union[Patient, None] = dm.find_patient_by_id(pid)
         if p:
-            show_patient(p)                    # Render detailed patient sheet if found
+            show_patient(p)
         else:
-            err(f"No patient with ID {pid}.") # Error message if record doesn't exist
-            
-    # Option 2: Full-text multi-criteria query (matches name, disease, or region)
+            err(f"No patient with ID {pid}.")
     else:
-        q = read_str("Search term") # Read string input
+        q: str = read_str("Search term")
         if not q:
             warn("Cancelled.")
             pause()
             return
-        results = dm.search_patients(q) # Execute the search query engine
+        results: list[Patient] = dm.search_patients(q)
         if results:
-            ok(f"Found {len(results)} match(es):") # Notify user of match count
-            show_patient_table(results)            # Render matched entries in a structured table
+            ok(f"Found {len(results)} match(es):")
+            show_patient_table(results)
         else:
-            info(f"No results for '{q}'.")        # Notify user when zero matches are returned
+            info(f"No results for '{q}'.")
     pause()
 
 
@@ -224,30 +312,27 @@ def do_update(dm: DataManager, agent: Agent) -> None:
         dm:    The data manager instance.
         agent: The currently logged-in health agent.
     """
-    # Display the section header for modifying clinical status
     header("Update Patient Status")
-    pid = read_int("Patient ID", 1, 99999) # Ask for the target patient identifier
-    p = dm.find_patient_by_id(pid)         # Fetch the existing patient record
+    pid: int = read_int("Patient ID", 1, 99999)
+    p: Union[Patient, None] = dm.find_patient_by_id(pid)
     if not p:
-        err(f"No patient with ID {pid}.")  # Terminate workflow if patient ID is invalid
+        err(f"No patient with ID {pid}.")
         pause()
         return
-        
-    show_patient(p) # Show current file details for visual validation before editing
-    new = pick_status() # Select the new clinical state (e.g., Recovered, Deceased, Under Treatment)
+    show_patient(p)
+    new: str = pick_status()
     if not new:
         warn("Cancelled.")
         pause()
         return
-        
-    # Explicitly prompt for user confirmation before modifying the database state
     if confirm(
         f"Change status from '{p.get_status()}' to '{new}'?"
     ):
-        # Attempt to save changes and re-display the updated record on success
         if dm.update_patient_status(pid, new):
             ok("Status updated.")
-            show_patient(dm.find_patient_by_id(pid))
+            updated: Union[Patient, None] = dm.find_patient_by_id(pid)
+            if updated:
+                show_patient(updated)
         else:
             err("Update failed.")
     else:
@@ -265,23 +350,19 @@ def do_own_entries(dm: DataManager, agent: Agent) -> None:
         agent: The currently logged-in health agent.
     """
     header("My Entries")
-    # Pull records registered exclusively by the currently logged-in agent's ID
-    entries = dm.get_entries_by_agent(agent.get_id())
-    
-    # Conditional rendering depending on whether the agent has registered records
+    entries: list[Patient] = dm.get_entries_by_agent(agent.get_id())
     if entries:
         ok(
             f"You have entered {len(entries)} patient(s):"
         )
-        show_patient_table(entries) # Display personal entries in a clean dashboard table
+        show_patient_table(entries)
     else:
-        info("You have not entered any patients yet.") # Handle empty state for newly created accounts
+        info("You have not entered any patients yet.")
     pause()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Department Agent actions — consultation and analysis only
-# ═══════════════════════════════════════════════════════════════════════════════
+# Section: Department Agent actions — consultation and analysis only
+
 
 def do_view_cases(dm: DataManager, agent: Agent) -> None:
     """View disease cases filtered by region, disease, or all.
@@ -291,31 +372,24 @@ def do_view_cases(dm: DataManager, agent: Agent) -> None:
         agent: The currently logged-in department agent.
     """
     header("View Disease Cases")
-    # Menu options for broad epidemiological dataset filtering
     print(f"  {Colors.CYAN}1.{Colors.RESET}  By region")
     print(f"  {Colors.CYAN}2.{Colors.RESET}  By disease")
     print(f"  {Colors.CYAN}3.{Colors.RESET}  All cases")
-    c = choose(1, 3) # Capture structural filter choice (1, 2, or 3)
-    
-    # Geographical Filter: View cases bound to a specific region
+    c: int = choose(1, 3)
     if c == 1:
-        r = pick_region()
+        r: str = pick_region()
         if not r:
             warn("Cancelled.")
             pause()
             return
-        show_case_table(dm.get_cases_by_region(r)) # Render cases matching selected region
-        
-    # Pathological Filter: View cases bound to a specific disease
+        show_case_table(dm.get_cases_by_region(r))
     elif c == 2:
-        d = pick_disease()
+        d: str = pick_disease()
         if not d:
             warn("Cancelled.")
             pause()
             return
-        show_case_table(dm.get_cases_by_disease(d)) # Render cases matching selected pathology
-        
-    # No Filter: Return and render the entire national case tracking registry
+        show_case_table(dm.get_cases_by_disease(d))
     else:
         show_case_table(dm.cases)
     pause()
@@ -335,32 +409,25 @@ def do_detect(dm: DataManager, agent: Agent) -> None:
     print(
         f"  {Colors.CYAN}2.{Colors.RESET}  Nationwide scan"
     )
-    c = choose(1, 2)
-    
-    # Instantiate the statistical threshold evaluation engine
-    det = EpidemicDetector(dm)
-    
-    # Targeted Scan: Evaluate outbreak metrics on a single region
+    c: int = choose(1, 2)
+    det: EpidemicDetector = EpidemicDetector(dm)
+    alerts: list = []
     if c == 1:
-        r = pick_region()
+        r: str = pick_region()
         if not r:
             warn("Cancelled.")
             pause()
             return
         info(f"Scanning {r}...")
-        alerts = det.detect_by_region(r) # Trigger regional detection logic
-        
-    # Macro Scan: Perform a sweeping anomaly detection across all territory regions
+        alerts = det.detect_by_region(r)
     else:
         info("Scanning all regions...")
-        alerts = det.detect_all_regions() # Trigger nationwide cluster analysis
-        
-    # Output evaluation: Trigger system alerts or confirm public health stability
+        alerts = det.detect_all_regions()
     if alerts:
-        warn(f"{len(alerts)} new alert(s) detected!") # Warn if safety thresholds are breached
-        show_alert_list(alerts)                       # Print listing of all triggered hot-spots
+        warn(f"{len(alerts)} new alert(s) detected!")
+        show_alert_list(alerts)
     else:
-        ok("All zones within thresholds - no new alerts.") # Confirm everything is safe
+        ok("All zones within thresholds - no new alerts.")
     pause()
 
 
@@ -372,15 +439,12 @@ def do_view_alerts(dm: DataManager, agent: Agent) -> None:
         agent: The currently logged-in department agent.
     """
     header("Active Alerts")
-    # Fetch all unresolved/active epidemiological alert files from memory
-    active = dm.get_active_alerts()
-    
-    # Conditional UI branch based on the presence of public health threats
+    active: list = dm.get_active_alerts()
     if active:
         warn(f"{len(active)} active alert(s):")
-        show_alert_list(active) # Map out all active alerts for immediate action
+        show_alert_list(active)
     else:
-        ok("No active alerts at this time.") # Output reassuring message when system state is clear
+        ok("No active alerts at this time.")
     pause()
 
 
@@ -392,7 +456,6 @@ def do_report(dm: DataManager, agent: Agent) -> None:
         agent: The currently logged-in department agent.
     """
     header("Generate Report")
-    # Granularity selection menu for statistical consolidation
     print(f"  {Colors.CYAN}1.{Colors.RESET}  Zone level")
     print(
         f"  {Colors.CYAN}2.{Colors.RESET}  Regional level"
@@ -400,32 +463,25 @@ def do_report(dm: DataManager, agent: Agent) -> None:
     print(
         f"  {Colors.CYAN}3.{Colors.RESET}  National level"
     )
-    c = choose(1, 3)
-    
-    # Initialize the core mathematical calculation engine
-    eng = ReportEngine(dm)
-    
-    # Granularity Level 1: Micro-localized analytical reports (Region -> Province -> Commune)
+    c: int = choose(1, 3)
+    eng: ReportEngine = ReportEngine(dm)
     if c == 1:
-        r = pick_region()
+        r: str = pick_region()
         if not r:
             warn("Cancelled.")
             pause()
             return
-        p = pick_province(r)
+        p: str = pick_province(r)
         if not p:
             warn("Cancelled.")
             pause()
             return
-        cm = pick_commune(p)
+        cm: str = pick_commune(p)
         if not cm:
             warn("Cancelled.")
             pause()
             return
-        # Calculate and output specific municipal indicators
         show_report(eng.generate_zone_report(r, p, cm))
-        
-    # Granularity Level 2: Intermediary reports combining an entire medical administrative region
     elif c == 2:
         r = pick_region()
         if not r:
@@ -433,8 +489,6 @@ def do_report(dm: DataManager, agent: Agent) -> None:
             pause()
             return
         show_report(eng.generate_region_report(r))
-        
-    # Granularity Level 3: Consolidated macroeconomic public health report covering the entire country
     else:
         show_report(eng.generate_national_report())
     pause()
@@ -453,46 +507,35 @@ def do_export(dm: DataManager, agent: Agent) -> None:
         agent: The currently logged-in department agent.
     """
     header("Export Report")
-    # Select target territorial boundary to serialize for official archiving or transmission
     print(f"  {Colors.CYAN}1.{Colors.RESET}  Zone level")
     print(
-        f"  {Colors.CYAN}2.{Colors.RESET}"
-        f"  Regional level"
+        f"  {Colors.CYAN}2.{Colors.RESET}  Regional level"
     )
     print(
-        f"  {Colors.CYAN}3.{Colors.RESET}"
-        f"  National level"
+        f"  {Colors.CYAN}3.{Colors.RESET}  National level"
     )
-    c = choose(1, 3)
-    
-    # Initialize utility handler responsible for physical file outputs
-    exp = ReportExporter(dm)
-    # Establish local path placeholders for output file tracking
-    txt_path = ""
-    md_path = ""
-    
-    # Branching execution for localized Zone (Commune) data extraction
+    c: int = choose(1, 3)
+    exp: ReportExporter = ReportExporter(dm)
+    txt_path: str = ""
+    md_path: str = ""
     if c == 1:
-        r = pick_region()
+        r: str = pick_region()
         if not r:
             warn("Cancelled.")
             pause()
             return
-        p = pick_province(r)
+        p: str = pick_province(r)
         if not p:
             warn("Cancelled.")
             pause()
             return
-        cm = pick_commune(p)
+        cm: str = pick_commune(p)
         if not cm:
             warn("Cancelled.")
             pause()
             return
-        # Write flat raw text and structured markdown documents to disk
         txt_path = exp.export_zone_report(r, p, cm)
         md_path = exp.export_zone_md(r, p, cm)
-        
-    # Branching execution for full Regional data compilation
     elif c == 2:
         r = pick_region()
         if not r:
@@ -501,25 +544,17 @@ def do_export(dm: DataManager, agent: Agent) -> None:
             return
         txt_path = exp.export_region_report(r)
         md_path = exp.export_region_md(r)
-        
-    # Branching execution for centralized National data compilation
     else:
         txt_path = exp.export_national_report()
         md_path = exp.export_national_md()
-        
-    # Verify and notify file generation status for raw text output (.txt)
     if txt_path:
         ok(f"TXT report saved to: {txt_path}")
     else:
         err("TXT export failed.")
-        
-    # Verify and notify file generation status for rich tables document (.md)
     if md_path:
         ok(f"MD report saved to:  {md_path}")
     else:
         err("MD export failed.")
-        
-    # Confirm final archival logging if at least one file export transaction completed successfully
     if txt_path or md_path:
         info("Archived copy filed in outputs/classeurs/")
     pause()
@@ -533,41 +568,42 @@ def do_analytics(dm: DataManager, agent: Agent) -> None:
         agent: The currently logged-in department agent.
     """
     header("Analytics Dashboard")
-    # Instantly trigger calculations and print KPIs to the terminal dashboard
     show_report(Analytics(dm).generate_dashboard())
     pause()
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Dispatch tables — role-specific
-# ═══════════════════════════════════════════════════════════════════════════════
+# Section: Dispatch tables — role-specific
 
-# Route dictionary (Dispatch Table) binding menu entries to their function calls and role permissions
+# Each entry maps a menu choice number to a (handler, permission) tuple.
+# The handler is the function to call; the permission string must appear
+# in the agent's permission set for the action to be allowed.
 _HEALTH_HANDLERS: dict[int, tuple] = {
-    1: (do_register, "register_patient"),    # Option 1: File a new case entry
-    2: (do_search, "search_patient"),        # Option 2: Run a file database query
-    3: (do_update, "update_status"),         # Option 3: Adjust ongoing case clinical standing
-    4: (do_own_entries, "view_own_entries"), # Option 4: Review audit trails for the current user
-    # 5 = Color legend (no permission needed)
-    # 6 = Exit
+    1: (do_register, "register_patient"),
+    2: (do_search, "search_patient"),
+    3: (do_update, "update_status"),
+    4: (do_own_entries, "view_own_entries"),
+    # Note: do_register_batch is available but not yet wired
+    # into the HEALTH_MENU.  To activate it, add a menu label
+    # in config.py HEALTH_MENU and an entry here, e.g.:
+    #   5: (do_register_batch, "register_patient"),
+    # Menu items for Legend and Exit are handled separately
+    # inside _handle_health_agent(), not via this dispatch table.
 }
 
-# Route dictionary mapping Department Officer commands to respective analytics functions
 _DEPT_HANDLERS: dict[int, tuple] = {
-    1: (do_view_cases, "view_cases"),       # Option 1: View raw data matrices
-    2: (do_detect, "detect_epidemic"),      # Option 2: Compute threshold deviations
-    3: (do_view_alerts, "view_alerts"),     # Option 3: Track open emergency conditions
-    4: (do_report, "generate_report"),      # Option 4: Compile point-in-time statistics
-    5: (do_export, "export_report"),        # Option 5: Save summaries to storage volumes
-    6: (do_analytics, "view_analytics"),    # Option 6: Review tactical trend dashboards
+    1: (do_view_cases, "view_cases"),
+    2: (do_detect, "detect_epidemic"),
+    3: (do_view_alerts, "view_alerts"),
+    4: (do_report, "generate_report"),
+    5: (do_export, "export_report"),
+    6: (do_analytics, "view_analytics"),
     # 7 = Color legend (no permission needed)
     # 8 = Exit
 }
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# Main loop
-# ═══════════════════════════════════════════════════════════════════════════════
+# Section: Main loop
+
 
 def main() -> None:
     """Run the EpiAlert application.
@@ -576,124 +612,155 @@ def main() -> None:
     2. Show the login screen.
     3. Loop: display role-specific menu -> dispatch -> repeat.
     4. Exit cleanly on user request.
-    """
-    # Instantiate DataManager (triggers parsing of persistent structural text databases)
-    dm = DataManager()
 
-    # Attempt user authentication check via interactive console screen
+    The loop is wrapped in a broad try/except so that unexpected
+    errors never crash the application.  A :class:`KeyboardInterrupt`
+    is caught separately so the user is reminded to use the Exit
+    option instead of Ctrl-C.
+    """
+    dm: DataManager = DataManager()
+
+    # Attempt login — fall back to a guest health agent on any failure
     try:
-        agent = login() # Trigger UI authentication routine
+        agent: Agent = login()
     except Exception:
-        # Fallback contingency: secure execution using a restricted Guest shell if login crashes
         agent = HealthAgent("Guest", "HA-0000", "Centre")
         warn("Login failed - using guest account.")
 
-    # Main infinite lifecycle menu iteration loop
     while True:
         try:
-            show_banner() # Render application header art branding on every loop pass
+            show_banner()
 
-            # ------------------------------------------------------------------
-            # Execution Block: Clinical Field Agent Role Workflow
-            # ------------------------------------------------------------------
             if isinstance(agent, HealthAgent):
-                # Print current session identities wrapped in Green text formatting
-                print(
-                    f"\n  {Colors.GREEN}{Colors.BOLD}"
-                    f"Logged in: {agent}{Colors.RESET}"
-                )
-                show_health_menu() # Output choice menu matching Health Agent privileges
-                choice = choose(1, len(HEALTH_MENU)) # Secure selection number entry
-
-                # Catch specific global terminal option: Display UI color semantics
-                if choice == len(HEALTH_MENU) - 1:
-                    show_legend()
-                # Catch specific global terminal option: Graceful exit execution sequence
-                elif choice == len(HEALTH_MENU):
-                    if confirm("Exit EpiAlert?"):
-                        ok(
-                            f"Thank you for using {APP_NAME}."
-                            f" Stay safe."
-                        )
-                        sys.exit(0) # Terminate runtime engine with clean OS signal 0
-                # Dispatch standard data management functionalities (Options 1 to 4)
-                else:
-                    # Unpack target routing parameters from the dispatch table
-                    handler, perm = _HEALTH_HANDLERS.get(
-                        choice, (None, "")
-                    )
-                    if handler is None:
-                        continue # Guard against missing configurations by re-looping
-                    # Enforce Role-Based Access Control (RBAC) via class permissions evaluation
-                    if perm and not agent.can_perform(perm):
-                        err(
-                            "You do not have permission"
-                            " for this action."
-                        )
-                        pause()
-                    else:
-                        handler(dm, agent) # Safely invoke the requested business logic function
-
-            # ------------------------------------------------------------------
-            # Execution Block: Department Strategist/Decision-Maker Workflow
-            # ------------------------------------------------------------------
+                _handle_health_agent(dm, agent)
             elif isinstance(agent, DepartmentAgent):
-                # Print current session identities wrapped in Blue text formatting
-                print(
-                    f"\n  {Colors.BLUE}{Colors.BOLD}"
-                    f"Logged in: {agent}{Colors.RESET}"
-                )
-                show_dept_menu() # Display macro-analytical command options
-                choice = choose(1, len(DEPT_MENU)) # Capture targeted choice integer
+                _handle_dept_agent(dm, agent)
+            else:
+                # Defensive: unknown agent type — should never happen
+                err("Unknown agent type. Please restart.")
+                sys.exit(1)
 
-                # Special Option handling: Display ANSI system color map legend
-                if choice == len(DEPT_MENU) - 1:
-                    show_legend()
-                # Special Option handling: Graceful shutdown workflow
-                elif choice == len(DEPT_MENU):
-                    if confirm("Exit EpiAlert?"):
-                        ok(
-                            f"Thank you for using {APP_NAME}."
-                            f" Stay safe."
-                        )
-                        sys.exit(0)
-                # Dispatch strategic monitoring functionalities (Options 1 to 6)
-                else:
-                    # Extract callable actions and verification strings from the dispatch map
-                    handler, perm = _DEPT_HANDLERS.get(
-                        choice, (None, "")
-                    )
-                    if handler is None:
-                        continue
-                    # Check operational access rights before executing computations
-                    if perm and not agent.can_perform(perm):
-                        err(
-                            "You do not have permission"
-                            " for this action."
-                        )
-                        pause()
-                    else:
-                        handler(dm, agent) # Safely call the selected dashboard or export script
-
-        # Handle hardware termination signal events (e.g., user presses Ctrl+C)
         except KeyboardInterrupt:
+            # User pressed Ctrl-C — remind them to use Exit option
             print(
                 f"\n  {Colors.YELLOW}Interrupted"
                 f" - choose Exit to quit.{Colors.RESET}"
             )
-            pause() # Force a program hold to maintain integrity and prevent unclean thread deaths
-            
-        # Global Catch-All Exception Firewall
-        # Safeguards execution against any unexpected bugs, preventing catastrophic software crashes
+            pause()
+        except EOFError:
+            # Input stream closed (e.g. piped input ended)
+            print(
+                f"\n  {Colors.YELLOW}Input ended"
+                f" - exiting.{Colors.RESET}"
+            )
+            sys.exit(0)
         except Exception as exc:
-            err(f"Unexpected error: {exc}") # Print diagnostic telemetry information safely
+            err(f"Unexpected error: {exc}")
             info(
                 "The application will continue."
                 " Please try again."
             )
-            pause() # Recover structural state and return safely back to the core operational loops
+            pause()
 
 
-# Python standard idiom confirming the script is run directly from a shell interface
+def _handle_health_agent(dm: DataManager, agent: HealthAgent) -> None:
+    """Display the Health Agent menu and dispatch the chosen action.
+
+    The Health Agent menu includes single registration, batch
+    registration, search, update, own entries, color legend,
+    and exit.  This helper keeps :func:`main` concise by
+    isolating the role-specific dispatch logic.
+
+    Args:
+        dm:    The data manager instance.
+        agent: The currently logged-in health agent.
+    """
+    print(
+        f"\n  {Colors.GREEN}{Colors.BOLD}"
+        f"Logged in: {agent}{Colors.RESET}"
+    )
+    show_health_menu()
+    menu_len: int = len(HEALTH_MENU)
+    choice: int = choose(1, menu_len)
+
+    # Legend is the second-to-last item in the menu
+    if choice == menu_len - 1:
+        show_legend()
+    # Exit is the last item
+    elif choice == menu_len:
+        if confirm("Exit EpiAlert?"):
+            ok(
+                f"Thank you for using {APP_NAME}."
+                f" Stay safe."
+            )
+            sys.exit(0)
+    else:
+        # Dispatch through the handler table
+        handler, perm = _HEALTH_HANDLERS.get(choice, (None, ""))
+        if handler is None:
+            # The menu item exists but has no handler registered
+            # (e.g. a future menu slot not yet wired up)
+            warn("This option is not yet available.")
+            pause()
+            return
+        if perm and not agent.can_perform(perm):
+            err(
+                "You do not have permission"
+                " for this action."
+            )
+            pause()
+        else:
+            handler(dm, agent)
+
+
+def _handle_dept_agent(dm: DataManager, agent: DepartmentAgent) -> None:
+    """Display the Department Agent menu and dispatch the chosen action.
+
+    The Department Agent menu includes view cases, epidemic
+    detection, view alerts, generate report, export report,
+    analytics, color legend, and exit.  This helper keeps
+    :func:`main` concise by isolating the role-specific dispatch
+    logic.
+
+    Args:
+        dm:    The data manager instance.
+        agent: The currently logged-in department agent.
+    """
+    print(
+        f"\n  {Colors.BLUE}{Colors.BOLD}"
+        f"Logged in: {agent}{Colors.RESET}"
+    )
+    show_dept_menu()
+    menu_len: int = len(DEPT_MENU)
+    choice: int = choose(1, menu_len)
+
+    # Legend is the second-to-last item in the menu
+    if choice == menu_len - 1:
+        show_legend()
+    # Exit is the last item
+    elif choice == menu_len:
+        if confirm("Exit EpiAlert?"):
+            ok(
+                f"Thank you for using {APP_NAME}."
+                f" Stay safe."
+            )
+            sys.exit(0)
+    else:
+        # Dispatch through the handler table
+        handler, perm = _DEPT_HANDLERS.get(choice, (None, ""))
+        if handler is None:
+            warn("This option is not yet available.")
+            pause()
+            return
+        if perm and not agent.can_perform(perm):
+            err(
+                "You do not have permission"
+                " for this action."
+            )
+            pause()
+        else:
+            handler(dm, agent)
+
+
 if __name__ == "__main__":
-    main() # Call program main execution sequence to activate the software core
+    main()
