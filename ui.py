@@ -8,7 +8,7 @@ for CLI tools in health/ops environments). No external TUI libraries are
 used to keep the dependency tree minimal and startup time near-instant.
 
 Design Constraints:
-    • Fixed 60-character content width (`_W`) to prevent wrapping on 80-col
+    • Fixed 60-char content width (`_W`) to prevent wrapping on 80-col
       terminals when accounting for 2-space left padding.
     • Strict 2-space indentation for all printed lines.
     • Role-separated menus (Health vs Department) to enforce least-privilege
@@ -62,15 +62,14 @@ from models import (
 # LOW-LEVEL RENDERING UTILITIES
 # =============================================================================
 
-_W = 80 # Content width.
-         
+_W = 60  # content width; leaves room for 2-space gutter on 80-col screens
+
 
 def clear_screen() -> None:
     """Wipe terminal output.
 
-    Automatically detects non-TTY environments (pipes, CI/CD runners, Tmux splits)
-    and silently switches to a triple-newline fallback to preserve stream integrity.
-    Safe for automation; never throws on redirected stdout.
+    Dispatches to native commands based on `os.name`. Safe for piped
+    input but note: will fail silently if stdout is redirected.
     """
     os.system("cls" if os.name == "nt" else "clear")
 
@@ -89,8 +88,7 @@ def _rule(char: str = "-") -> str:
 def _center(text: str, width: int = _W) -> str:
     """Pad `text` with spaces to centre it within `width`.
 
-    Note: `str.center()` handles odd/even padding automatically and respects
-    terminal Unicode double-width characters.
+    Note: `str.center()` handles odd/even padding automatically.
     """
     return text.center(width)
 
@@ -202,10 +200,11 @@ def show_banner() -> None:
 def show_legend() -> None:
     """Print a quick-reference guide for all terminal colour mappings.
 
-    Diseases are rendered in descending epidemiological priority order,
-    as Python dictionaries inherently sort keys by insertion sequence which
-    matches the WHO risk matrix defined in `config.py`. Grouped by semantic
-    domain for rapid field scanning.
+    Why this exists:
+        Field agents work under time pressure. Instead of guessing
+        whether a yellow row means 'suspected' or 'warning', they
+        get a deterministic visual key. Grouped by semantic domain
+        (Status, Severity, Disease, Interface).
     """
     header("Color Legend")
 
@@ -441,12 +440,10 @@ def read_int(prompt: str, lo: int = 0, hi: int = 150) -> int:
 
 
 def read_date(prompt: str) -> str:
-    """Date validator. Fully compliant with ISO 8601.
+    """Date validator. Accepts `YYYY-MM-DD` or Enter (defaults to now).
 
-    Accepts `YYYY-MM-DD`, `YYYY-MM-DDTHH:MM`, and `YYYY/MM/DD` 
-    interchangeably. `datetime.strptime` automatically normalizes
-    locale-aware separators in modern Python 3.12+, so no custom
-    parsing logic is required.
+    Note: Returns `YYYY-MM-DD HH:MM` when auto-filled to preserve
+    temporal precision for audit trails.
     """
     while True:
         try:
@@ -464,7 +461,8 @@ def read_date(prompt: str) -> str:
 # =============================================================================
 # All display functions handle empty collections gracefully.
 # Truncation (`[:N]`) prevents line overflow when disease names or
-# locations exceed column widths.
+# locations exceed column widths. ANSI codes are injected inline
+# to preserve alignment.
 
 def show_patient(p: Patient) -> None:
     """Render a single patient record as a structured card."""
@@ -493,9 +491,7 @@ def show_patient(p: Patient) -> None:
 def show_patient_table(patients: list[Patient]) -> None:
     """Compact tabular view. Columns are fixed-width for alignment.
 
-    Python's f-string width specifiers (`:<N`) automatically compensate
-    for ANSI escape byte sequences, ensuring pixel-perfect column alignment
-    across all terminal emulators without manual offset calculations.
+    Truncates name/disease at 21/27 chars to stay within `_W` margin.
     """
     if not patients:
         info("No patients found.")
@@ -581,12 +577,7 @@ def show_report(text: str) -> None:
 # a database sequence.
 
 def login() -> Agent:
-    """Interactive session bootstrap. Returns a fully initialised Agent.
-
-    Timestamp-based IDs (`%Y%m%d%H%M%S`) guarantee global uniqueness across
-    distributed deployments. Microsecond collisions are prevented by the OS
-    scheduler's monotonic clock fallback, even under concurrent regional load.
-    """
+    """Interactive session bootstrap. Returns a fully initialised Agent."""
     show_banner()
     header("Welcome to EpiAlert")
 
