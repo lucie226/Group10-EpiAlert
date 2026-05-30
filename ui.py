@@ -62,10 +62,8 @@ from models import (
 # LOW-LEVEL RENDERING UTILITIES
 # =============================================================================
 
-_W = 60  # Content width. Standard terminal padding: 2 (left) + 60 (content) + 18 (right) = 80.
-         # ANSI escape sequences are zero-width in byte-count calculations on POSIX systems,
-         # so they don't affect the `_W` budget or trigger unwanted line-wrapping.
-
+_W = 80 # Content width.
+         
 
 def clear_screen() -> None:
     """Wipe terminal output.
