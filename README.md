@@ -119,12 +119,11 @@ EpiAlert/
 
 # 8. Github Profiles
 
-| User | GitHub Link |
-| --- | --- |
-| **OUEDRAOGO LUCIENNE** | [GitHub Profile](https://github.com/lucie226) |
-| **OUEDRAOGO Grace Melyka Nongbzanga** | [GitHub Profile](https://github.com/graceouedraogo2011-collab) |
-| **Nassa Kiswendsida** | [GitHub Profile](https://github.com/nassakiswendsida21-dotcom) |
-| **OUEDA Mohamed Hamine** | [GitHub Profile](https://github.com/ouedamohamed) |
-| **Nave Attaoullah** | [GitHub Profile](https://github.com/naveattaoullah-max) |
-| **OUEDRAOGO Aubin Arnaud Relwende** | [GitHub Profile](https://github.com/aubinarnaudrelwendoo-commits) |
-
+| Team Member | GitHub Profile | Contributions |
+| :--- | :--- | :--- |
+| **OUEDRAOGO Lucienne** | [GitHub Profile](https://github.com/lucie226) | Data Management, `README.md`, Project Directory Structure |
+| **OUEDRAOGO Grace Melyka Nongbzanga** | [GitHub Profile](https://github.com/graceouedraogo2011-collab) | Configuration (`config.py`) |
+| **NASSA Kiswendsida** | [GitHub Profile](https://github.com/nassakiswendsida21-dotcom) | Model Development (`models.py`) |
+| **OUEDA Mohamed Hamine** | [GitHub Profile](https://github.com/ouedamohamed) | Core Logic Development (`core.py`) |
+| **NAVE Attaoullah** | [GitHub Profile](https://github.com/naveattaoullah-max) | Main Application Entry Point (`main.py`) |
+| **OUEDRAOGO Aubin Arnaud Relwendé** | [GitHub Profile](https://github.com/aubinarnaudrelwendoo-commits) | Initialization (`__init__.py`), UI Development (`ui.py`), Research & Documentation |
